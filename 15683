@@ -1,0 +1,184 @@
+#include <iostream>
+#include <cstring>
+#include <queue>
+#include <vector>
+#include <algorithm>
+
+#define MAX_SIZE 9
+#define INFINITY 987654321
+using namespace std;
+
+typedef pair<int, int> Coordinate;
+
+int rows, columns, answer, cctvCount;
+int grid[MAX_SIZE][MAX_SIZE];
+int tempGrid[MAX_SIZE][MAX_SIZE];
+int cctvDirection[MAX_SIZE];
+
+int dx[5] = {0, 0, 0, 1, -1};
+int dy[5] = {0, 1, -1, 0, 0};
+
+vector<Coordinate> cctvLocations;
+
+void copyGrid() {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            tempGrid[i][j] = grid[i][j];
+        }
+    }
+}
+
+void detect(int x, int y, int direction) {
+    int nx = x;
+    int ny = y;
+
+    while (true) {
+        nx += dx[direction];
+        ny += dy[direction];
+
+        if (nx < 0 || ny < 0 || nx >= rows || ny >= columns)
+            break;
+
+        // 빈 칸이라면 cctv의 감시범위임
+        if (tempGrid[nx][ny] == 0) {
+            tempGrid[nx][ny] = 7;
+        }
+        // 벽이라면 감시 종료
+        else if (tempGrid[nx][ny] == 6) {
+            break;
+        }
+    }
+}
+
+void setCctv() {
+    for (int i = 0; i < cctvLocations.size(); i++) {
+        int x = cctvLocations[i].first;
+        int y = cctvLocations[i].second;
+
+        switch (tempGrid[x][y]) {
+            case 1: {
+                int direction = cctvDirection[i];
+                detect(x, y, direction);
+                break;
+            }
+
+            case 2: {
+                if (cctvDirection[i] == 1) {
+                    detect(x, y, 1);
+                    detect(x, y, 2);
+                } else {
+                    detect(x, y, 3);
+                    detect(x, y, 4);
+                }
+                break;
+            }
+            case 3: {
+                if (cctvDirection[i] == 1) {
+                    detect(x, y, 1);
+                    detect(x, y, 4);
+                } else if (cctvDirection[i] == 2) {
+                    detect(x, y, 1);
+                    detect(x, y, 3);
+                } else if (cctvDirection[i] == 3) {
+                    detect(x, y, 2);
+                    detect(x, y, 3);
+                } else if (cctvDirection[i] == 4) {
+                    detect(x, y, 2);
+                    detect(x, y, 4);
+                }
+                break;
+            }
+            case 4: {
+                if (cctvDirection[i] == 1) {
+                    detect(x, y, 1);
+                    detect(x, y, 2);
+                    detect(x, y, 4);
+                } else if (cctvDirection[i] == 2) {
+                    detect(x, y, 1);
+                    detect(x, y, 3);
+                    detect(x, y, 4);
+                } else if (cctvDirection[i] == 3) {
+                    detect(x, y, 1);
+                    detect(x, y, 2);
+                    detect(x, y, 3);
+                } else if (cctvDirection[i] == 4) {
+                    detect(x, y, 2);
+                    detect(x, y, 3);
+                    detect(x, y, 4);
+                }
+                break;
+            }
+            case 5: {
+                detect(x, y, 1);
+                detect(x, y, 2);
+                detect(x, y, 3);
+                detect(x, y, 4);
+                break;
+            }
+
+            default:
+                break;
+        }
+    }
+}
+
+int countBlindSpots() {
+    int result = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            if (tempGrid[i][j] == 0)
+                result++;
+        }
+    }
+    return result;
+}
+
+void dfs(int index, int count) {
+
+    if (count == cctvCount) {
+
+        copyGrid();
+
+        setCctv();
+
+        answer = min(answer, countBlindSpots());
+        return;
+    }
+
+    int x = cctvLocations[index].first;
+    int y = cctvLocations[index].second;
+
+    for (int k = 1; k <= 4; k++) {
+
+        if (grid[x][y] == 5 && k > 1)
+            continue;
+        if (grid[x][y] == 2 && k > 2)
+            continue;
+
+        cctvDirection[index] = k;
+        dfs(index + 1, count + 1);
+        cctvDirection[index] = 0;
+    }
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+
+    cin >> rows >> columns;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            cin >> grid[i][j];
+
+            if (grid[i][j] >= 1 && grid[i][j] <= 5)
+                cctvLocations.push_back(Coordinate(i, j));
+        }
+    }
+
+    answer = INFINITY;
+    dfs(0, 0);
+    cout << answer << "\n";
+
+    return 0;
+}
