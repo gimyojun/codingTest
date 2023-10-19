@@ -1,0 +1,41 @@
+#include <string>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int solution(int n, vector<int> lost, vector<int> reserve) {
+    
+    vector<int> ans(n+1,1);
+    
+    for(int i=0;i<reserve.size();i++){
+        ++ans[reserve[i]];
+    }
+    for(int i=0;i<lost.size();i++){
+        --ans[lost[i]];
+    }
+    
+    
+    
+    for(int i=1;i<ans.size();i++){
+        //체육복 없는 애 기준으로 탐색
+        if(!ans[i]){
+            if(ans[i-1] == 2){
+                --ans[i-1];
+                ++ans[i];
+            }else if (ans[i+1]==2){
+                --ans[i+1];
+                ++ans[i];
+            }
+        }
+    }
+    
+    int answer = 0;
+    for(int i=1;i<ans.size();i++){
+        if(ans[i]>=1)answer++;
+    }
+            
+    
+    
+
+    return answer;
+}
