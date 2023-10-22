@@ -1,0 +1,44 @@
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int solution(vector<vector<int>> jobs) {
+    int answer = 0;
+    int now = 0;
+    int j_size = jobs.size();
+
+    sort(jobs.begin(), jobs.end());
+
+    while (jobs.size() != 0) {
+        int start = 9999;
+        int working = 9999;
+        int idx = 0;
+        
+        // 현재 시간에 요청된 작업들 중 작업 시간이 가장 짧은것 시작
+        for (int i = 0; i < jobs.size(); i++) {
+            if (now >= jobs[i][0]) {
+                if (working >= jobs[i][1]) {
+                    idx = i;
+                    working = jobs[i][1];
+                    start = jobs[i][0];
+                }
+            }
+        }
+        
+        // 만약 현재 요청된게 없다면 시간 늘리기
+        if (start == 9999) {
+            now++;
+        }
+        else {
+            jobs.erase(jobs.begin() + idx);
+            now += working;
+            answer += now - start;
+        }
+    }
+    
+    answer /= j_size;
+    
+    return answer;
+}
